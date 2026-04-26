@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -6,10 +7,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:grocers/models/banner_model.dart';
 import 'package:grocers/models/category_model.dart';
 import 'package:grocers/models/product_model.dart';
-
+import 'package:grocers/data/mock_banners.dart';
+import 'package:grocers/data/mock_categories.dart';
+import 'package:grocers/data/mock_products.dart';
+import 'package:grocers/widgets/product_card.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -31,7 +35,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -42,55 +45,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 0;
 
-  /// MOCK DATA
-  final banners = [
-    BannerModel(
-      title: "Harvest Up to 30% Off",
-      subtitle: "Experience the taste of peak-season freshness",
-      imagePath: "assets/images/harvest.png",
-    ),
-  ];
-
-  final vegetables = [
-    ProductModel(
-      name: "Bell Peppers",
-      price: 2.99,
-      imagePath: "assets/images/pepper.png",
-      isFresh: true,
-    ),
-    ProductModel(
-      name: "Garden Carrots",
-      price: 1.49,
-      imagePath: "assets/images/carrots.png",
-    ),
-  ];
-
-  final fruits = [
-    ProductModel(
-      name: "Gala Apples",
-      price: 3.99,
-      imagePath: "assets/images/apple.png",
-    ),
-    ProductModel(
-      name: "Cavendish Banana",
-      price: 0.99,
-      imagePath: "assets/images/banana.png",
-    ),
-  ];
-
-  final categories = [
-    CategoryModel(title: "Daily Dairy", imagePath: "assets/images/milk.png"),
-    CategoryModel(title: "Snacks", imagePath: "assets/images/snacks.png"),
-    CategoryModel(title: "Bakery", imagePath: "assets/images/bread.png"),
-    CategoryModel(title: "Exotic Fruits", imagePath: "assets/images/exotic.png"),
-  ];
+  late final banners = mockBanners;
+  late final vegetables = mockProducts
+      .where((p) => p.category == Category.vegetable)
+      .toList();
+  late final fruits = mockProducts
+      .where((p) => p.category == Category.fruits)
+      .toList();
+  late final categories = mockCategories;
 
   @override
   Widget build(BuildContext context) {
     const green = Color(0xFF154212);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFFDF9F0),
       appBar: const GrocersAppBar(),
 
       bottomNavigationBar: CustomBottomNavBar(
@@ -256,13 +225,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
 class BannerSlide extends StatelessWidget {
   final BannerModel banner;
 
-  const BannerSlide({
-    super.key,
-    required this.banner,
-  });
+  const BannerSlide({super.key, required this.banner});
 
   @override
   Widget build(BuildContext context) {
@@ -287,10 +254,7 @@ class BannerSlide extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               height: 180.h,
-              child: Image.asset(
-                banner.imagePath,
-                fit: BoxFit.cover,
-              ),
+              child: Image.asset(banner.imagePath, fit: BoxFit.cover),
             ),
 
             /// Overlay for readability
@@ -379,10 +343,7 @@ class GrocersAppBar extends StatelessWidget implements PreferredSizeWidget {
           bottomRight: Radius.circular(32.r),
         ),
         border: const Border(
-          bottom: BorderSide(
-            color: Color(0x33DCFCE7),
-            width: 1,
-          ),
+          bottom: BorderSide(color: Color(0x33DCFCE7), width: 1),
         ),
         boxShadow: const [
           BoxShadow(
@@ -402,11 +363,7 @@ class GrocersAppBar extends StatelessWidget implements PreferredSizeWidget {
               /// Menu
               GestureDetector(
                 onTap: onMenuTap,
-                child: Icon(
-                  Icons.menu,
-                  color: green,
-                  size: 24.sp,
-                ),
+                child: Icon(Icons.menu, color: green, size: 24.sp),
               ),
 
               /// Title
@@ -426,11 +383,7 @@ class GrocersAppBar extends StatelessWidget implements PreferredSizeWidget {
                 children: [
                   GestureDetector(
                     onTap: onSearchTap,
-                    child: Icon(
-                      Icons.search,
-                      color: green,
-                      size: 24.sp,
-                    ),
+                    child: Icon(Icons.search, color: green, size: 24.sp),
                   ),
                   SizedBox(width: 12.w),
                   GestureDetector(
@@ -459,223 +412,11 @@ class GrocersAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-
-
-class ProductCard extends StatefulWidget {
-  final ProductModel product;
-
-  const ProductCard({
-    super.key,
-    required this.product,
-  });
-
-  @override
-  State<ProductCard> createState() => _ProductCardState();
-}
-
-class _ProductCardState extends State<ProductCard> {
-  int quantity = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    const green = Color(0xFF154212);
-    const lightText = Color(0xFF42493E);
-    const priceColor = Color(0xFF934B00);
-
-    return Container(
-      width: 200.w,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24.r),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0A2D5A27),
-            offset: Offset(0, 8),
-            blurRadius: 24,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          /// IMAGE SECTION
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24.r),
-                ),
-                child: Image.asset(
-                  widget.product.imagePath,
-                  height: 160.h,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
-
-              /// FRESH TAG
-              if (widget.product.isFresh)
-                Positioned(
-                  top: 10.h,
-                  left: 10.w,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: 10.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.eco_outlined,
-                          size: 14.sp,
-                          color: green,
-                        ),
-                        SizedBox(width: 4.w),
-                        Text(
-                          "FRESH",
-                          style: GoogleFonts.lexend(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w500,
-                            color: green,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-            ],
-          ),
-
-          /// BOTTOM SECTION
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// NAME
-                Text(
-                  widget.product.name,
-                  style: GoogleFonts.lexend(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w400,
-                    color: lightText,
-                  ),
-                ),
-
-                SizedBox(height: 4.h),
-
-                /// PRICE + ACTION
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "₹${widget.product.price.toStringAsFixed(2)} / kg",
-                      style: GoogleFonts.lexend(
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w400,
-                        color: priceColor,
-                      ),
-                    ),
-
-                    /// ACTION BUTTON
-                    _buildActionButton(),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton() {
-    const green = Color(0xFF154212);
-
-    if (quantity == 0) {
-      return GestureDetector(
-        onTap: () {
-          setState(() => quantity = 1);
-        },
-        child: Container(
-          width: 36.w,
-          height: 36.w,
-          decoration: const BoxDecoration(
-            color: green,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 20.sp,
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: green,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                if (quantity > 0) quantity--;
-              });
-            },
-            child: Icon(
-              Icons.remove,
-              color: Colors.white,
-              size: 18.sp,
-            ),
-          ),
-
-          SizedBox(width: 8.w),
-
-          Text(
-            quantity.toString(),
-            style: GoogleFonts.lexend(
-              color: Colors.white,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-
-          SizedBox(width: 8.w),
-
-          GestureDetector(
-            onTap: () {
-              setState(() => quantity++);
-            },
-            child: Icon(
-              Icons.add,
-              color: Colors.white,
-              size: 18.sp,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-
-
 class CategoryCard extends StatelessWidget {
   final CategoryModel category;
   final VoidCallback? onTap;
 
-  const CategoryCard({
-    super.key,
-    required this.category,
-    this.onTap,
-  });
+  const CategoryCard({super.key, required this.category, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -684,19 +425,14 @@ class CategoryCard extends StatelessWidget {
       child: Container(
         width: 163.w,
         height: 163.w,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(32.r),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(32.r)),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(32.r),
           child: Stack(
             children: [
               /// Background Image
               Positioned.fill(
-                child: Image.asset(
-                  category.imagePath,
-                  fit: BoxFit.cover,
-                ),
+                child: Image.asset(category.imagePath, fit: BoxFit.cover),
               ),
 
               /// Dark overlay for text readability
@@ -741,12 +477,8 @@ class NavItem {
   final IconData icon;
   final String label;
 
-  const NavItem({
-    required this.icon,
-    required this.label,
-  });
+  const NavItem({required this.icon, required this.label});
 }
-
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -783,10 +515,7 @@ class CustomBottomNavBar extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.9),
             border: const Border(
-              top: BorderSide(
-                color: Color(0xFFF0FDF4),
-                width: 1,
-              ),
+              top: BorderSide(color: Color(0xFFF0FDF4), width: 1),
             ),
             boxShadow: const [
               BoxShadow(
@@ -843,11 +572,7 @@ class _NavItemWidget extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
-              item.icon,
-              size: 18.sp,
-              color: green,
-            ),
+            Icon(item.icon, size: 18.sp, color: green),
             SizedBox(width: 6.w),
             Text(
               item.label,
@@ -866,11 +591,7 @@ class _NavItemWidget extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          item.icon,
-          size: 18.sp,
-          color: grey,
-        ),
+        Icon(item.icon, size: 18.sp, color: grey),
         SizedBox(height: 4.h),
         Text(
           item.label,
