@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:grocers/models/product_model.dart';
 import 'package:grocers/provider/cart_provider.dart';
+import 'package:grocers/screens/product_detail_screen.dart';
 
 class ProductCard extends ConsumerStatefulWidget {
   final ProductModel product;
@@ -26,8 +27,17 @@ class _ProductCardState extends ConsumerState<ProductCard> {
     const lightText = Color(0xFF42493E);
     const priceColor = Color(0xFF934B00);
 
-    return Container(
-      width: 200.w,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(product: widget.product),
+          ),
+        );
+      },
+      child: Container(
+        width: 200.w,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24.r),
@@ -133,6 +143,7 @@ class _ProductCardState extends ConsumerState<ProductCard> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
